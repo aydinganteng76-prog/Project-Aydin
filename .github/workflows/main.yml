@@ -25,7 +25,7 @@ jobs:
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game & Bungkus ISO Aman
+      - name: Rakit Game & Bungkus ISO Final
         run: |
           export PATH=$PATH:/usr/local/bin
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
@@ -46,8 +46,8 @@ jobs:
           
           cd ..
           
-          # Perintah genisoimage standar tanpa opsi aneh yang bikin error
-          genisoimage -o aydin_game.iso -V "AYDIN_GAME" -no-emul-boot -iso-level 1 cdroot/
+          # Perintah genisoimage bersih tanpa parameter boot abal-abal
+          genisoimage -o aydin_game.iso -V "AYDIN_GAME" -iso-level 1 cdroot/
 
       - name: Simpan File Game ISO Siap Main
         uses: actions/upload-artifact@v4
