@@ -6,10 +6,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Mesin PS1 & Alat CD
+      - name: Install Mesin PS1
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip cmake make build-essential genisoimage
+          sudo apt-get install -y wget unzip cmake make build-essential
           
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/PSn00bSDK-0.24-Linux.zip
@@ -25,7 +25,7 @@ jobs:
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game & Bungkus ISO Final
+      - name: Rakit Game
         run: |
           export PATH=$PATH:/usr/local/bin
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
@@ -34,23 +34,9 @@ jobs:
           mkdir build && cd build
           cmake ..
           make
-          
-          # Bersihin dan buat ulang folder cdroot
-          rm -rf ../cdroot && mkdir -p ../cdroot
-          
-          # Salin file executable dan pastikan namanya kapital
-          cp aydin.exe ../cdroot/AYDIN.EXE
-          
-          # Buat file SYSTEM.CNF standar PS1
-          printf "BOOT = cdrom:\\\\AYDIN.EXE;1\r\nTCB = 4\r\nEVENT = 16\r\nSTACK = 801FFFF0\r\n" > ../cdroot/SYSTEM.CNF
-          
-          cd ..
-          
-          # Perintah genisoimage bersih tanpa parameter boot abal-abal
-          genisoimage -o aydin_game.iso -V "AYDIN_GAME" -iso-level 1 cdroot/
 
-      - name: Simpan File Game ISO Siap Main
+      - name: Simpan File Eksekutif PS1
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Aydin-Jakarta-Utara-ISO
-          path: aydin_game.iso
+          name: Game-Aydin-Executable
+          path: build/aydin.exe
