@@ -6,46 +6,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Mesin PS1
+      - name: Install Mesin PS1 & Alat CD
         run: |
           sudo apt-get update
-          # Ini dia yang kemaren ketinggalan: make & build-essential
-          sudo apt-get install -y wget unzip cmake make build-essential
+          sudo apt-get install -y wget unzip cmake make build-essential genisoimage
           
-          echo "Download Mesin Jadi..."
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/PSn00bSDK-0.24-Linux.zip
           
-          echo "Pasang ke Server..."
           sudo unzip -q -o gcc-mipsel-none-elf-12.3.0-linux.zip -d /usr/local/
           sudo unzip -q -o PSn00bSDK-0.24-Linux.zip -d /usr/local/
 
-      - name: Siapkan Konfigurasi CMake Otomatis
+      - name: Siapkan Konfigurasi CMake
         run: |
-          # Suruh server nyari letak file panduan otomatis
           TOOLCHAIN_PATH=$(find /usr/local -name "sdk.cmake" | head -n 1)
-          echo "Panduan ketemu di: $TOOLCHAIN_PATH"
-          
-          # Nulis file CMakeLists secara dinamis sesuai letak file yang ketemu
           echo "cmake_minimum_required(VERSION 3.21)" > CMakeLists.txt
           echo "set(CMAKE_TOOLCHAIN_FILE \"$TOOLCHAIN_PATH\")" >> CMakeLists.txt
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game
+      - name: Rakit Game & Bungkus Jadi ISO
         run: |
           export PATH=$PATH:/usr/local/bin
-          
-          # Nyari folder library otomatis biar gak nyasar
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
           export PSN00BSDK_LIBS=$LIB_PATH
           
           mkdir build && cd build
           cmake ..
           make
+          
+          # Bikin folder khusus ISO dan bungkus executable jadi CD Image PS1
+          mkdir -p ../cdroot
+          cp aydin.exe ../cdroot/SYSTEM.CNF
+          # Kalau file bin/exe aslinya ada, kita copy juga
+          cp aydin* ../cdroot/
+          
+          cd ..
+          mkisofs -o aydin_game.iso -V "AYDIN_PSX" -iso-level 4 cdroot/
 
-      - name: Simpan File Game Siap Main
+      - name: Simpan File Game ISO Siap Main
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Aydin-Jakarta-Utara
-          path: build/aydin*
+          name: Game-Aydin-Jakarta-Utara-ISO
+          path: aydin_game.iso
