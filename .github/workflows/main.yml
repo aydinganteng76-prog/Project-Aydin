@@ -19,10 +19,18 @@ jobs:
           sudo unzip -q -o gcc-mipsel-none-elf-12.3.0-linux.zip -d /usr/local/
           sudo unzip -q -o PSn00bSDK-0.24-Linux.zip -d /usr/local/
 
-      - name: Rakit Kode Jadi Game
+      - name: Cari File dan Rakit Game
         run: |
-          # Pastikan sistem nemu file mesinnya
           export PATH=$PATH:/usr/local/bin
+          
+          # Suruh server nyari sendiri letak file psn00bsdk.mk
+          MK_PATH=$(find /usr/local -name psn00bsdk.mk | head -n 1)
+          echo "File panduan ketemu di: $MK_PATH"
+          
+          # Paksa Makefile pakai alamat hasil pencarian tadi
+          sed -i "s|include.*|include $MK_PATH|" Makefile
+          
+          # Mulai rakit!
           make
 
       - name: Simpan File Game Siap Main
