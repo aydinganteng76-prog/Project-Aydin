@@ -6,10 +6,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Mesin PS1 (Jalur Cepat - Anti Gagal)
+      - name: Install Mesin PS1
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip cmake
+          # Ini dia yang kemaren ketinggalan: make & build-essential
+          sudo apt-get install -y wget unzip cmake make build-essential
           
           echo "Download Mesin Jadi..."
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
@@ -21,15 +22,24 @@ jobs:
 
       - name: Siapkan Konfigurasi CMake Otomatis
         run: |
-          echo 'cmake_minimum_required(VERSION 3.21)' > CMakeLists.txt
-          echo 'set(CMAKE_TOOLCHAIN_FILE "/usr/local/lib/libpsn00b/cmake/sdk.cmake")' >> CMakeLists.txt
-          echo 'project(AydinProject)' >> CMakeLists.txt
-          echo 'psn00bsdk_add_executable(aydin STATIC main.c)' >> CMakeLists.txt
+          # Suruh server nyari letak file panduan otomatis
+          TOOLCHAIN_PATH=$(find /usr/local -name "sdk.cmake" | head -n 1)
+          echo "Panduan ketemu di: $TOOLCHAIN_PATH"
+          
+          # Nulis file CMakeLists secara dinamis sesuai letak file yang ketemu
+          echo "cmake_minimum_required(VERSION 3.21)" > CMakeLists.txt
+          echo "set(CMAKE_TOOLCHAIN_FILE \"$TOOLCHAIN_PATH\")" >> CMakeLists.txt
+          echo "project(AydinProject)" >> CMakeLists.txt
+          echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
       - name: Rakit Game
         run: |
           export PATH=$PATH:/usr/local/bin
-          export PSN00BSDK_LIBS=/usr/local/lib/libpsn00b
+          
+          # Nyari folder library otomatis biar gak nyasar
+          LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
+          export PSN00BSDK_LIBS=$LIB_PATH
+          
           mkdir build && cd build
           cmake ..
           make
@@ -38,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Game-Aydin-Jakarta-Utara
-          path: build/aydin.exe
+          path: build/aydin*
