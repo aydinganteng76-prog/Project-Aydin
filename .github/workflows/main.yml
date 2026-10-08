@@ -25,7 +25,7 @@ jobs:
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game & Bungkus ISO Strict Mode
+      - name: Rakit Game & Bungkus ISO Aman
         run: |
           export PATH=$PATH:/usr/local/bin
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
@@ -35,19 +35,19 @@ jobs:
           cmake ..
           make
           
-          # Bersihin folder cdroot
+          # Bersihin dan buat ulang folder cdroot
           rm -rf ../cdroot && mkdir -p ../cdroot
           
-          # Copas jadi huruf kapital mutlak
+          # Salin file executable dan pastikan namanya kapital
           cp aydin.exe ../cdroot/AYDIN.EXE
           
-          # Bikin SYSTEM.CNF dengan line ending DOS (CRLF) yang disukai PS1
+          # Buat file SYSTEM.CNF standar PS1
           printf "BOOT = cdrom:\\\\AYDIN.EXE;1\r\nTCB = 4\r\nEVENT = 16\r\nSTACK = 801FFFF0\r\n" > ../cdroot/SYSTEM.CNF
           
           cd ..
           
-          # Paksa genisoimage pakai parameter strict ISO9660 level 1 tanpa ekstensi aneh-aneh
-          genisoimage -o aydin_game.iso -layout -V "AYDIN_GAME" -no-emul-boot -iso-level 1 -allow-lowercase -r -J- cdroot/
+          # Perintah genisoimage standar tanpa opsi aneh yang bikin error
+          genisoimage -o aydin_game.iso -V "AYDIN_GAME" -no-emul-boot -iso-level 1 cdroot/
 
       - name: Simpan File Game ISO Siap Main
         uses: actions/upload-artifact@v4
