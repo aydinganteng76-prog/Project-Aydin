@@ -5,19 +5,19 @@
 #include <psxapi.h>
 #include <psxpad.h>
 
-// Buffer untuk *controller* (joystick)
+// Buffer untuk controller PS1
 char pad_buff[2][34];
+int font_id;
 
 void init_system() {
-    // Inisialisasi sistem PS1
     ResetCallback();
     SetVideoMode(MODE_PAL); 
     
-    // Setup font dasar PS1
+    // Inisialisasi layar dan font
     FntLoad(960, 0);
-    FntOpen(10, 10, 300, 200, 0, 100);
+    font_id = FntOpen(10, 10, 300, 200, 0, 100);
     
-    // Inisialisasi controller
+    // Inisialisasi tombol controller
     InitPAD(&pad_buff[0][0], 34, &pad_buff[1][0], 34);
     StartPAD();
 }
@@ -26,17 +26,17 @@ int main() {
     init_system();
     
     while(1) {
-        // Bersihkan teks sebelumnya
+        // Bersihkan teks frame sebelumnya
         FntFlush(-1);
         
-        // Tulis teks intro di layar
-        FntPrint("PROJECT AYDIN: JAKARTA UTARA\n\n");
-        FntPrint("Bandara Soekarno-Hatta...\n");
-        FntPrint("Udah lama gw gak balik ke Gang Mesjid.\n\n");
-        FntPrint("Naban, Baim, Iban... pada kemana ya?\n\n");
-        FntPrint("Tekan tombol START untuk mulai...");
+        // Tulis cerita pembuka Aydin balik ke Jakarta Utara
+        FntPrint(font_id, "PROJECT AYDIN: JAKARTA UTARA\n\n");
+        FntPrint(font_id, "Bandara Soekarno-Hatta...\n");
+        FntPrint(font_id, "Udah lama gw gak balik ke Gang Mesjid.\n\n");
+        FntPrint(font_id, "Naban, Baim, Iban... pada kemana ya?\n\n");
+        FntPrint(font_id, "Tekan tombol START untuk mulai...");
         
-        // Update layar (tampilkan teks)
+        // Sinkronisasi grafik PS1
         DrawSync(0);
         VSync(0);
     }
