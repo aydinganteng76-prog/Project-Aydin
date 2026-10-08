@@ -1,0 +1,25 @@
+name: Build Project Aydin
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Mesin PS1 di Cloud
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mipsel-linux-gnu cmake git
+          git clone https://github.com/Lameguy64/PSn00bSDK.git
+          cd PSn00bSDK && mkdir build && cd build
+          cmake .. && make && sudo make install
+
+      - name: Rakit Kode Jadi Game
+        run: make
+
+      - name: Simpan File Game Siap Main
+        uses: actions/upload-artifact@v4
+        with:
+          name: Game-Aydin-Jakarta-Utara
+          path: aydin.exe
+          
