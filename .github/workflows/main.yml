@@ -9,7 +9,7 @@ jobs:
       - name: Install Mesin PS1 (Jalur Cepat - Anti Gagal)
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip make
+          sudo apt-get install -y wget unzip cmake
           
           echo "Download Mesin Jadi..."
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
@@ -19,22 +19,23 @@ jobs:
           sudo unzip -q -o gcc-mipsel-none-elf-12.3.0-linux.zip -d /usr/local/
           sudo unzip -q -o PSn00bSDK-0.24-Linux.zip -d /usr/local/
 
-      - name: Cari File dan Rakit Game
+      - name: Siapkan Konfigurasi CMake Otomatis
+        run: |
+          echo 'cmake_minimum_required(VERSION 3.21)' > CMakeLists.txt
+          echo 'set(CMAKE_TOOLCHAIN_FILE "/usr/local/lib/libpsn00b/cmake/sdk.cmake")' >> CMakeLists.txt
+          echo 'project(AydinProject)' >> CMakeLists.txt
+          echo 'psn00bsdk_add_executable(aydin STATIC main.c)' >> CMakeLists.txt
+
+      - name: Rakit Game
         run: |
           export PATH=$PATH:/usr/local/bin
-          
-          # Suruh server nyari sendiri letak file psn00bsdk.mk
-          MK_PATH=$(find /usr/local -name psn00bsdk.mk | head -n 1)
-          echo "File panduan ketemu di: $MK_PATH"
-          
-          # Paksa Makefile pakai alamat hasil pencarian tadi
-          sed -i "s|include.*|include $MK_PATH|" Makefile
-          
-          # Mulai rakit!
+          export PSN00BSDK_LIBS=/usr/local/lib/libpsn00b
+          mkdir build && cd build
+          cmake ..
           make
 
       - name: Simpan File Game Siap Main
         uses: actions/upload-artifact@v4
         with:
           name: Game-Aydin-Jakarta-Utara
-          path: aydin.exe
+          path: build/aydin.exe
