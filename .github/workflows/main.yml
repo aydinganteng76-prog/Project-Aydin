@@ -25,7 +25,7 @@ jobs:
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game & Bungkus Jadi ISO
+      - name: Rakit Game & Bungkus Jadi ISO Resmi
         run: |
           export PATH=$PATH:/usr/local/bin
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
@@ -35,11 +35,15 @@ jobs:
           cmake ..
           make
           
-          # Bikin folder khusus ISO dan bungkus executable jadi CD Image PS1
+          # Buat struktur folder CD PS1 yang bener
           mkdir -p ../cdroot
-          cp aydin.exe ../cdroot/SYSTEM.CNF
-          # Kalau file bin/exe aslinya ada, kita copy juga
-          cp aydin* ../cdroot/
+          cp aydin.exe ../cdroot/AYDIN.EXE
+          
+          # Buat file SYSTEM.CNF wajib PS1
+          echo "BOOT = cdrom:\\AYDIN.EXE;1" > ../cdroot/SYSTEM.CNF
+          echo "TCB = 4" >> ../cdroot/SYSTEM.CNF
+          echo "EVENT = 16" >> ../cdroot/SYSTEM.CNF
+          echo "STACK = 801FFFF0" >> ../cdroot/SYSTEM.CNF
           
           cd ..
           mkisofs -o aydin_game.iso -V "AYDIN_PSX" -iso-level 4 cdroot/
