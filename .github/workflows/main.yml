@@ -6,16 +6,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Mesin PS1 di Cloud
+      - name: Install Mesin PS1 (Jalur Cepat - Anti Gagal)
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential gcc-mipsel-linux-gnu cmake git libelf-dev
-          git clone https://github.com/Lameguy64/PSn00bSDK.git
-          cd PSn00bSDK && mkdir build && cd build
-          cmake .. && make && sudo make install
+          sudo apt-get install -y wget unzip make
+          
+          echo "Download Mesin Jadi..."
+          wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
+          wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/PSn00bSDK-0.24-Linux.zip
+          
+          echo "Pasang ke Server..."
+          sudo unzip -q -o gcc-mipsel-none-elf-12.3.0-linux.zip -d /usr/local/
+          sudo unzip -q -o PSn00bSDK-0.24-Linux.zip -d /usr/local/
 
       - name: Rakit Kode Jadi Game
-        run: make
+        run: |
+          # Pastikan sistem nemu file mesinnya
+          export PATH=$PATH:/usr/local/bin
+          make
 
       - name: Simpan File Game Siap Main
         uses: actions/upload-artifact@v4
