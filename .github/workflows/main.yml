@@ -6,10 +6,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Mesin PS1 & Alat CD
+      - name: Install Mesin PS1
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip cmake make build-essential genisoimage cdrdao python3
+          sudo apt-get install -y wget unzip cmake make build-essential
           
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/gcc-mipsel-none-elf-12.3.0-linux.zip
           wget -q https://github.com/Lameguy64/PSn00bSDK/releases/download/v0.24/PSn00bSDK-0.24-Linux.zip
@@ -25,7 +25,7 @@ jobs:
           echo "project(AydinProject)" >> CMakeLists.txt
           echo "psn00bsdk_add_executable(aydin STATIC main.c)" >> CMakeLists.txt
 
-      - name: Rakit Game & Bungkus Jadi CUE/BIN Resmi
+      - name: Rakit Game & Cetak Kaset Asli PS1
         run: |
           export PATH=$PATH:/usr/local/bin
           LIB_PATH=$(find /usr/local -type d -name "libpsn00b" | head -n 1)
@@ -35,26 +35,33 @@ jobs:
           cmake ..
           make
           
-          rm -rf ../cdroot && mkdir -p ../cdroot
-          cp aydin.exe ../cdroot/AYDIN.EXE
-          printf "BOOT = cdrom:\\\\AYDIN.EXE;1\r\nTCB = 4\r\nEVENT = 16\r\nSTACK = 801FFFF0\r\n" > ../cdroot/SYSTEM.CNF
-          
           cd ..
-          # Bikin file ISO mentah dulu
-          genisoimage -o aydin_disc.iso -V "AYDIN_GAME" -iso-level 1 cdroot/
+          mkdir -p cd_root
+          cp build/aydin.exe cd_root/AYDIN.EXE
           
-          # Konversi ISO mentah jadi format CUE/BIN PS1 murni pakai cdrdao
-          toc2cue aydin_disc.iso aydin_game.cue || true
+          # Bikin file SYSTEM.CNF
+          printf "BOOT = cdrom:\\\\AYDIN.EXE;1\r\nTCB = 4\r\nEVENT = 16\r\nSTACK = 801FFFF0\r\n" > cd_root/SYSTEM.CNF
           
-          # Kalau toc2cue gak ada, kita buat file .cue manual secara bersih
-          echo 'FILE "aydin_disc.iso" BINARY' > aydin.cue
-          echo '  TRACK 01 MODE2/2352' >> aydin.cue
-          echo '    INDEX 01 00:00:00' >> aydin.cue
+          # Bikin cetakan XML buat alat pembuat kaset resmi
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > aydin.xml
+          echo '<iso_project image_name="aydin_game.bin" cue_sheet="aydin_game.cue">' >> aydin.xml
+          echo '  <track type="data">' >> aydin.xml
+          echo '    <source>' >> aydin.xml
+          echo '      <file name="SYSTEM.CNF" type="data" source="cd_root/SYSTEM.CNF" />' >> aydin.xml
+          echo '      <file name="AYDIN.EXE" type="data" source="cd_root/AYDIN.EXE" />' >> aydin.xml
+          echo '    </source>' >> aydin.xml
+          echo '  </track>' >> aydin.xml
+          echo '</iso_project>' >> aydin.xml
+          
+          # Cari dan jalankan alat pembuat kaset resmi dari PSn00bSDK
+          MKPSXISO=$(find /usr/local -name "mkpsxiso" -type f | head -n 1)
+          chmod +x $MKPSXISO
+          $MKPSXISO aydin.xml
 
-      - name: Simpan Kaset Game CUE/BIN
+      - name: Simpan Kaset Game Siap Main
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Aydin-Jakarta-Utara-Disc
+          name: Game-Aydin-Kaset-Asli
           path: |
-            aydin_disc.iso
-            aydin.cue
+            aydin_game.bin
+            aydin_game.cue
